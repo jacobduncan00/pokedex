@@ -60,14 +60,21 @@ const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
           <div className="text-black capitalize text-md font-bold pokemon-font mb-2 text-center">
             Abilities
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          {details.abilities.length >= 2 ? (
+            <div className="grid grid-cols-2 gap-2">
+              {details.abilities.map((ability) => {
+                return (
+                  <div className="bg-slate-200 rounded-xl py-0.5 capitalize">
+                    {ability.ability.name}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
             <div className="bg-slate-200 rounded-xl py-0.5 capitalize">
               {details.abilities[0].ability.name}
             </div>
-            <div className="bg-slate-200 rounded-xl py-0.5 capitalize">
-              {details.abilities[1].ability.name}
-            </div>
-          </div>
+          )}
           <div className="mt-4 mb-4" />
           <div className="text-black capitalize text-md font-bold pokemon-font mb-2 text-center">
             Stats

@@ -44,7 +44,7 @@ const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
                 Height
               </div>
               <div className="bg-slate-200 rounded-xl py-0.5">
-                {details.height * 0.1}m
+                {(details.height * 0.1).toFixed(2)}m
               </div>
             </div>
             <div>

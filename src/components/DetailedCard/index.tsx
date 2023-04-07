@@ -1,11 +1,5 @@
-import { Outfit } from "next/font/google";
 import Image from "next/image";
 import { Pokemon } from "pokenode-ts";
-
-const outfit = Outfit({
-  weight: "600",
-  subsets: ["latin"],
-});
 
 type DetailedCardProps = {
   details: Pokemon;
@@ -27,20 +21,23 @@ const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
         </div>
         <Image
           className="rendering-pixelated m-auto mt-12"
-          src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${details.id}.gif`}
+          src={
+            `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${details.id}.gif` ||
+            `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${details.id}.png`
+          }
           alt="image"
           width={175}
           height={175}
         />
         <div className="text-center mt-12 w-1/2 m-auto">
-          <p className="text-gray-300 pokemon-font font-bold">N°{details.id}</p>
-          <h1 className="text-black capitalize text-3xl font-bold pokemon-font">
+          <p className="text-gray-300 font-bold">N°{details.id}</p>
+          <h1 className="text-black capitalize text-3xl font-bold ">
             {details.name}
           </h1>
           <hr className="mt-4 mb-4" />
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <div className="text-black capitalize text-md font-bold pokemon-font mb-1">
+              <div className="text-black capitalize text-md font-bold mb-1">
                 Height
               </div>
               <div className="bg-slate-200 rounded-xl py-0.5">
@@ -48,7 +45,7 @@ const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
               </div>
             </div>
             <div>
-              <div className="text-black capitalize text-md font-bold pokemon-font mb-1">
+              <div className="text-black capitalize text-md font-bold mb-1">
                 Weight
               </div>
               <div className="bg-slate-200 rounded-xl py-0.5">
@@ -57,7 +54,7 @@ const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
             </div>
           </div>
           <div className="mt-4 mb-4" />
-          <div className="text-black capitalize text-md font-bold pokemon-font mb-2 text-center">
+          <div className="text-black capitalize text-md font-bold mb-2 text-center">
             Abilities
           </div>
           {details.abilities.length >= 2 ? (
@@ -76,21 +73,17 @@ const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
             </div>
           )}
           <div className="mt-4 mb-4" />
-          <div className="text-black capitalize text-md font-bold pokemon-font mb-2 text-center">
+          <div className="text-black capitalize text-md font-bold mb-2 text-center">
             Stats
           </div>
           <div>
             {details.stats.map((stat) => {
-              return <>{stat.stat.name}</>;
+              return <>{stat.stat.name.charAt(0)}</>;
             })}
           </div>
         </div>
       </div>
       <style jsx>{`
-        .pokemon-font {
-          font-family: ${outfit.style.fontFamily};
-        }
-
         .type.normal {
           background-color: #a8a77a;
         }

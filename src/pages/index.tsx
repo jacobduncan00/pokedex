@@ -16,13 +16,16 @@ const Home = () => {
     "infinitePokemon",
     async ({ pageParam = 0 }) =>
       await fetch(
-        `https://pokeapi.co/api/v2/pokemon?limit=30&offset=${pageParam}`
+        `https://pokeapi.co/api/v2/pokemon?limit=100&offset=${pageParam}`
       ).then((result) => result.json()),
     {
       getNextPageParam: (lastPage, pages) => {
         console.log("pages", pages);
         if (lastPage.next) {
-          return pages.length * 30;
+          if (pages.length * 100 > 800) {
+            return null;
+          }
+          return pages.length * 100;
         }
       },
     }
@@ -58,7 +61,7 @@ const Home = () => {
             <Search />
             {status === "success" && (
               <InfiniteScroll
-                dataLength={data?.pages.length * 30}
+                dataLength={data?.pages.length * 100}
                 next={fetchNextPage}
                 hasMore={hasNextPage!}
                 loader={<PokeballSpinner />}
@@ -101,6 +104,7 @@ const Home = () => {
               }
               100% {
                 bottom: -100vh;
+                visibility: hidden;
               }
             }
 

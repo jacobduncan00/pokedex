@@ -87,7 +87,7 @@ const Home = () => {
             <title>Pokedex</title>
           </Head>
           <Search data={pokemon} setFilteredData={setFilteredPokemon} />
-          <div className="grid grid-cols-2 xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-3 gap-2 m-2">
+          <div className="grid grid-cols-2 xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-3 gap-2 m-2 h-screen">
             {filteredPokemon?.map((pokemon) => (
               <Card
                 pokemon={pokemon}

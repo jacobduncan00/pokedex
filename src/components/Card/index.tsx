@@ -9,7 +9,7 @@ type SimpleCardProps = {
 const SimpleCard = ({ pokemon, clickCallback }: SimpleCardProps) => {
   return (
     <div
-      className="shadow-xl rounded-lg text-center relative group border-2 hover:border-gray-400 cursor-pointer max-w-sm bg-white"
+      className="shadow-xl rounded-lg text-center relative group border-2 hover:border-gray-400 cursor-pointer max-w-sm bg-white max-h-[174px]"
       onClick={() => clickCallback(pokemon.name)}
     >
       <Image

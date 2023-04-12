@@ -2,43 +2,73 @@ import Card from "@/components/Card";
 import DetailedCard from "@/components/DetailedCard";
 import Search from "@/components/Search";
 import PokeballSpinner from "@/components/Spinner/pokeball";
+import { PrefetchedPokemon } from "@/types/pokemon";
 import Head from "next/head";
-import { Pokemon } from "pokenode-ts";
 import { useEffect, useState } from "react";
-import InfiniteScroll from "react-infinite-scroll-component";
-import { useInfiniteQuery } from "react-query";
 
 const Home = () => {
-  const [currentPokemonDetails, setCurrentPokemonDetails] = useState<Pokemon>();
+  const [currentPokemonName, setCurrentPokemonName] = useState<string>();
   const [loading, setLoading] = useState<boolean>(true);
   const [style, setStyle] = useState<string>("h-screen w-screen sticky");
-  const { data, status, fetchNextPage, hasNextPage } = useInfiniteQuery(
-    "infinitePokemon",
-    async ({ pageParam = 0 }) =>
-      await fetch(
-        `https://pokeapi.co/api/v2/pokemon?limit=100&offset=${pageParam}`
-      ).then((result) => result.json()),
-    {
-      getNextPageParam: (lastPage, pages) => {
-        console.log("pages", pages);
-        if (lastPage.next) {
-          if (pages.length * 100 > 800) {
-            return null;
-          }
-          return pages.length * 100;
-        }
-      },
-    }
-  );
+  const [pokemon, setPokemon] = useState<Array<PrefetchedPokemon>>();
+  const [filteredPokemon, setFilteredPokemon] = useState<
+    Array<PrefetchedPokemon> | undefined
+  >();
 
   useEffect(() => {
-    setTimeout(() => {
+    const initializePokemonFetch = async () => {
+      const url = "https://pokeapi.co/api/v2/pokemon/?limit=897";
+      const response = await fetch(url);
+      const responseJSON = await response.json();
+      const pokemonData = responseJSON.results.map(
+        (currPokemon: any, index: number) => {
+          return { id: index + 1, name: currPokemon.name, types: [] };
+        }
+      );
+      setPokemon(pokemonData);
+      getAllPokemonTypes();
+    };
+
+    const getAllPokemonTypes = async () => {
+      const typePromises = [];
+      for (let i = 1; i <= 18; i++) {
+        const url = `https://pokeapi.co/api/v2/type/${i}`;
+        typePromises.push(fetch(url).then((res) => res.json()));
+      }
+      const allTypes = await Promise.all(typePromises);
+      allTypes.forEach((type: any) => {
+        type.pokemon.forEach((pokemon: any) => {
+          const pokemonID = pokemon.pokemon.url
+            .replace("https://pokeapi.co/api/v2/pokemon/", "")
+            .replace("/", "");
+          if (pokemon) {
+            setPokemon((prevState) => {
+              const updatedPokemon = prevState?.map((pokemon, i) => {
+                if (i === parseInt(pokemonID) - 1) {
+                  if (!pokemon.types.includes(type.name)) {
+                    pokemon.types.unshift(type.name);
+                    return {
+                      ...pokemon,
+                      types: [...pokemon.types],
+                    };
+                  }
+                }
+                return pokemon;
+              });
+              return updatedPokemon;
+            });
+          }
+        });
+      });
       setLoading(false);
-    }, 1000);
+      // window.scrollTo(0, 0);
+    };
+
+    initializePokemonFetch();
   }, []);
 
-  const clickCallback = (pokemon: Pokemon) => {
-    setCurrentPokemonDetails(pokemon);
+  const clickCallback = (name: string) => {
+    setCurrentPokemonName(name);
     setStyle(`h-screen w-screen sticky slide-in`);
   };
 
@@ -47,84 +77,67 @@ const Home = () => {
   };
 
   return (
-    <>
-      {loading ? (
-        <>
-          <PokeballSpinner />
-        </>
-      ) : (
-        <div className="bg-[#f6f8fc]">
-          <div className="h-fit h-min-screen mr-4">
-            <Head>
-              <title>Pokedex</title>
-            </Head>
-            <Search />
-            {status === "success" && (
-              <InfiniteScroll
-                dataLength={data?.pages.length * 100}
-                next={fetchNextPage}
-                hasMore={hasNextPage!}
-                loader={<PokeballSpinner />}
-              >
-                <div className="grid grid-cols-2 xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-3 gap-2 m-2">
-                  {data?.pages.map((page) => (
-                    <>
-                      {page.results.map(
-                        (pokemon: { name: string; url: string }) => (
-                          <Card
-                            pokemon={pokemon}
-                            clickCallback={clickCallback}
-                            key={pokemon.url}
-                          />
-                        )
-                      )}
-                    </>
-                  ))}
-                </div>
-              </InfiniteScroll>
-            )}
-            {currentPokemonDetails && (
-              <div className={style}>
-                <DetailedCard
-                  details={currentPokemonDetails}
-                  closeCallback={onDetailedCardClose}
-                />
-              </div>
-            )}
+    <div>
+      <div className={!loading ? "hidden" : "visible h-[10000vh] w-full"}>
+        <PokeballSpinner />
+      </div>
+      <div className="bg-[#f6f8fc]">
+        <div className="h-fit mr-4 min-h-screen">
+          <Head>
+            <title>Pokedex</title>
+          </Head>
+          <Search data={pokemon} setFilteredData={setFilteredPokemon} />
+          <div className="grid grid-cols-2 xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-3 gap-2 m-2">
+            {filteredPokemon?.map((pokemon) => (
+              <Card
+                pokemon={pokemon}
+                clickCallback={clickCallback}
+                key={pokemon.id}
+              />
+            ))}
           </div>
-          <style jsx>{`
-            .slide-out {
-              animation: slideOut ease-in-out 1s;
-              animation-fill-mode: forwards;
-            }
-
-            @keyframes slideOut {
-              0% {
-                bottom: 0;
-              }
-              100% {
-                bottom: -100vh;
-                visibility: hidden;
-              }
-            }
-
-            .slide-in {
-              animation: slideIn ease-in-out 1s;
-              animation-fill-mode: forwards;
-            }
-
-            @keyframes slideIn {
-              0% {
-                bottom: -100vh;
-              }
-              100% {
-                bottom: 0;
-              }
-            }
-          `}</style>
+          {currentPokemonName && (
+            <div className={style}>
+              <DetailedCard
+                name={currentPokemonName}
+                closeCallback={onDetailedCardClose}
+              />
+            </div>
+          )}
         </div>
-      )}
-    </>
+        <style jsx>{`
+          .slide-out {
+            animation: slideOut ease-in-out 1s;
+            animation-fill-mode: forwards;
+          }
+
+          @keyframes slideOut {
+            0% {
+              bottom: 0%;
+            }
+            100% {
+              bottom: -100vh;
+              visibility: hidden;
+            }
+          }
+
+          .slide-in {
+            animation: slideIn ease-in-out 1s;
+            animation-fill-mode: forwards;
+          }
+
+          @keyframes slideIn {
+            0% {
+              bottom: -100vh;
+            }
+            100% {
+              bottom: 0%;
+            }
+          }
+        `}</style>
+      </div>
+      )
+    </div>
   );
 };
 

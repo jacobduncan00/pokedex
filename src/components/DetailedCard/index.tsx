@@ -1,16 +1,26 @@
+import useFetchPokemon from "@/hooks/useRequest";
 import Image from "next/image";
-import { Pokemon } from "pokenode-ts";
+import { useState } from "react";
+import PokeballSpinner from "../Spinner/pokeball";
 
 type DetailedCardProps = {
-  details: Pokemon;
+  name: string;
   closeCallback: () => void;
 };
 
-const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
-  console.log(details);
+const DetailedCard = ({ name, closeCallback }: DetailedCardProps) => {
+  const [useFallbackImage, setUseFallbackImage] = useState(false);
+  const { result, error } = useFetchPokemon(name);
+  if (error || !result) {
+    return (
+      <div className="shadow-xl rounded-lg text-center relative group border-2 hover:border-gray-400 cursor-pointer max-w-sm h-[166px] bg-white">
+        <PokeballSpinner />
+      </div>
+    );
+  }
   return (
     <div
-      className={`type ${details.types[0].type.name} flex justify-center items-center h-screen`}
+      className={`type ${result.types[0].type.name} flex justify-center items-center h-screen`}
     >
       <div className="rounded-xl bg-white h-4/5 w-2/3 shadow-xl">
         <div
@@ -20,19 +30,25 @@ const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
           X
         </div>
         <Image
-          className="rendering-pixelated m-auto mt-12"
           src={
-            `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${details.id}.gif` ||
-            `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${details.id}.png`
+            useFallbackImage
+              ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${result.id}.png`
+              : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${result.id}.gif`
           }
           alt="image"
+          className="rendering-pixelated m-auto mt-12"
           width={175}
           height={175}
+          onError={() => {
+            if (!useFallbackImage) {
+              setUseFallbackImage(true);
+            }
+          }}
         />
         <div className="text-center mt-12 w-1/2 m-auto">
-          <p className="text-gray-300 font-bold">N°{details.id}</p>
+          <p className="text-gray-300 font-bold">N°{result.id}</p>
           <h1 className="text-black capitalize text-3xl font-bold ">
-            {details.name}
+            {result.name}
           </h1>
           <hr className="mt-4 mb-4" />
           <div className="grid grid-cols-2 gap-2">
@@ -41,7 +57,7 @@ const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
                 Height
               </div>
               <div className="bg-slate-200 rounded-xl py-0.5">
-                {(details.height * 0.1).toFixed(2)}m
+                {(result.height * 0.1).toFixed(2)}m
               </div>
             </div>
             <div>
@@ -49,7 +65,7 @@ const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
                 Weight
               </div>
               <div className="bg-slate-200 rounded-xl py-0.5">
-                {Math.floor(details.weight * 0.220462)}lbs
+                {Math.floor(result.weight * 0.220462)}lbs
               </div>
             </div>
           </div>
@@ -57,11 +73,14 @@ const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
           <div className="text-black capitalize text-md font-bold mb-2 text-center">
             Abilities
           </div>
-          {details.abilities.length >= 2 ? (
+          {result.abilities.length >= 2 ? (
             <div className="grid grid-cols-2 gap-2">
-              {details.abilities.map((ability) => {
+              {result.abilities.map((ability: any) => {
                 return (
-                  <div className="bg-slate-200 rounded-xl py-0.5 capitalize">
+                  <div
+                    className="bg-slate-200 rounded-xl py-0.5 capitalize"
+                    key={ability}
+                  >
                     {ability.ability.name}
                   </div>
                 );
@@ -69,16 +88,20 @@ const DetailedCard = ({ details, closeCallback }: DetailedCardProps) => {
             </div>
           ) : (
             <div className="bg-slate-200 rounded-xl py-0.5 capitalize">
-              {details.abilities[0].ability.name}
+              {result.abilities[0].ability.name}
             </div>
           )}
           <div className="mt-4 mb-4" />
-          <div className="text-black capitalize text-md font-bold mb-2 text-center">
-            Stats
-          </div>
-          <div>
-            {details.stats.map((stat) => {
-              return <>{stat.stat.name.charAt(0)}</>;
+          <div className="flex flex-col justify-center items-center">
+            <div className="text-black capitalize text-md font-bold mb-2 text-left">
+              Stats
+            </div>
+            {result.stats.map((stat: any) => {
+              return (
+                <div key={stat} className="text-left">
+                  {stat.stat.name} | {stat.base_stat}
+                </div>
+              );
             })}
           </div>
         </div>
